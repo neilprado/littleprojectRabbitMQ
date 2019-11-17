@@ -6,11 +6,12 @@ import java.io.Serializable;
 
 
 @Data
-public class Cliente implements Serializable {
+public class Banco implements Serializable {
     private String agencia;
     private String conta;
     private double valor;
     private String senha;
     private String numCartao;
+    private int codBandeira;
 
 }

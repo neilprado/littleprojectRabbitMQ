@@ -6,6 +6,8 @@ import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistrar;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
@@ -15,22 +17,45 @@ import org.springframework.messaging.handler.annotation.support.MessageHandlerMe
 
 @Configuration
 public class RabbitConfig implements RabbitListenerConfigurer {
-    public static final String QUEUE = "payment-queue";
-    public static final String EXCHANGE = "payment-exchange";
+
+    @Value("${visa.queue}")
+    public static final String VISA = "visaQueue" ;
+
+    @Value("${visa.exchange}")
+    public static String VISA_EXCHANGE = "visaExchange";
+
+    @Value("${master.queue}")
+    public static String MASTER = "masterQueue";
+
+    @Value("${master.exchange}")
+    public static String MASTER_EXCHANGE = "masterExchange";
 
     @Bean
-    Queue paymentQueue(){
-        return QueueBuilder.durable(QUEUE).build();
+    Queue visaQueue(){
+        return QueueBuilder.durable(VISA).build();
     }
 
     @Bean
-    Exchange paymentExchange(){
-        return ExchangeBuilder.topicExchange(EXCHANGE).build();
+    Queue masterQueue(){ return QueueBuilder.durable(MASTER).build(); }
+
+    @Bean
+    Exchange visaExchange(){
+        return ExchangeBuilder.topicExchange(VISA_EXCHANGE).build();
     }
 
     @Bean
-    Binding binding(Queue queue, TopicExchange paymentExchange){
-        return BindingBuilder.bind(queue).to(paymentExchange).with(QUEUE);
+    Exchange masterExchange(){
+        return ExchangeBuilder.topicExchange(MASTER_EXCHANGE).build();
+    }
+
+    @Bean
+    Binding visaBinding(TopicExchange paymentExchange){
+        return BindingBuilder.bind(visaQueue()).to(paymentExchange).with(VISA);
+    }
+
+    @Bean
+    Binding masterBinding(TopicExchange paymentExchange){
+        return BindingBuilder.bind(masterQueue()).to(paymentExchange).with(MASTER);
     }
 
     @Bean
